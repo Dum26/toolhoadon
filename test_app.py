@@ -1,4 +1,5 @@
 import json
+from io import BytesIO
 import os
 import socket
 import subprocess
@@ -9,6 +10,7 @@ import unittest
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from openpyxl import load_workbook
 
 
 class ViewerTests(unittest.TestCase):
@@ -96,6 +98,32 @@ class ViewerTests(unittest.TestCase):
             self.snapshot.unlink()
             with self.request("/api/inventory") as response:
                 self.assertEqual(response.status, 503)
+        finally:
+            self.snapshot.write_text(original, encoding="utf-8")
+
+    def test_excel_export_matches_filter_and_keeps_item_labels_as_text(self):
+        original = self.snapshot.read_text(encoding="utf-8")
+        try:
+            body = {"data": [
+                {"ma_hang": "A", "ten_hang": "Hàng có tồn", "ton_kho": 2.5},
+                {"ma_hang": "=1+1", "ten_hang": "Hàng hết", "ton_kho": 0},
+                {"ma_hang": "B", "ten_hang": "Hàng âm", "ton_kho": -1},
+            ], "report": {"from_date": "2026-01-01", "to_date": "2026-12-31", "period": "Cả năm"}}
+            self.snapshot.write_text(json.dumps(body), encoding="utf-8")
+            with self.request("/api/export.xlsx?stock=available&q=hang") as response:
+                self.assertEqual(response.status, 200)
+                sheet = load_workbook(BytesIO(response.read())).active
+                self.assertEqual(sheet.max_row, 2)
+                self.assertEqual(sheet["D2"].value, 2.5)
+            with self.request("/api/export.xlsx?stock=empty&sort=ton_kho&descending=true") as response:
+                sheet = load_workbook(BytesIO(response.read())).active
+                self.assertEqual(sheet.max_row, 3)
+                self.assertEqual(sheet["B2"].value, "=1+1")
+                self.assertEqual(sheet["B2"].data_type, "s")
+            with self.request("/api/inventory") as response:
+                self.assertEqual(json.load(response)["report"], body["report"])
+            with self.request("/api/export.xlsx?sort=unknown") as response:
+                self.assertEqual(response.status, 422)
         finally:
             self.snapshot.write_text(original, encoding="utf-8")
 

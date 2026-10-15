@@ -97,7 +97,8 @@ def sync_once():
         if not rows:
             raise CloudSyncError("No inventory was returned; the published snapshot has not been replaced.")
         body = {"success": True, "count": len(rows),
-                "updated_at": max(row["updated_at"] for row in rows), "data": rows}
+                "updated_at": max(row["updated_at"] for row in rows), "data": rows,
+                "report": {"from_date": options.from_date.isoformat(), "to_date": options.to_date.isoformat(), "period": options.period}}
         publish_inventory(body, env["RENDER_API_KEY"], env["RENDER_SERVICE_ID"])
         print(f"Fetched {len(rows)} inventory items; Render deployment requested.")
     finally:

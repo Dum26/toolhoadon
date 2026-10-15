@@ -3,25 +3,82 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Tra cứu tồn kho</title>
+  <meta name="theme-color" content="#193d50">
+  <title>VA STOCK — Tra cứu tồn kho</title>
   <link rel="stylesheet" href="/static/style.css">
   <script src="/static/app.js" defer></script>
 </head>
 <body>
-  <main class="shell">
-    <header class="hero">
-      <div><p class="eyebrow">VAOnline · Báo cáo nhập xuất tồn</p><h1>TRA CỨU TỒN KHO</h1><p class="intro">Tìm nhanh mã hàng, tên hàng và số lượng tồn cuối kỳ.</p></div>
-      <button id="refresh" type="button">Làm mới dữ liệu</button>
+  <aside class="sidebar">
+    <div class="brand"><strong>VA STOCK</strong><span>Quản lý tồn kho</span></div>
+    <nav aria-label="Điều hướng chính">
+      <button class="nav-item active" data-view="overview" aria-current="page">Tổng quan</button>
+      <button class="nav-item" data-view="inventory">Tồn kho</button>
+      <button class="nav-item" data-view="settings">Cài đặt</button>
+    </nav>
+    <p class="sidebar-note">Dữ liệu chia sẻ trực tuyến</p>
+  </aside>
+  <main class="workspace">
+    <header class="page-header">
+      <div><h1>VA STOCK</h1><p id="page-subtitle">Tra cứu tồn kho</p></div>
+      <span id="connection" class="connection">● Đang tải dữ liệu</span>
     </header>
-    <section class="panel" aria-label="Danh sách tồn kho">
-      <div class="toolbar">
-        <label class="search"><span>Tìm mặt hàng</span><input id="query" type="search" placeholder="Nhập mã hàng hoặc tên hàng..." autocomplete="off"></label>
-        <div class="stats"><span id="count">Tổng số mặt hàng: 0</span><span id="updated">Cập nhật lần cuối: Chưa có</span></div>
+    <section id="dashboard" class="dashboard" aria-label="Tra cứu tồn kho">
+      <div class="summary" aria-label="Tổng quan tồn kho">
+        <button class="stat-card" data-stock="all" aria-pressed="true"><span>TỔNG MẶT HÀNG</span><strong id="count">0</strong></button>
+        <button class="stat-card" data-stock="available" aria-pressed="false"><span>CÓ TỒN</span><strong id="available-count">0</strong></button>
+        <button class="stat-card" data-stock="empty" aria-pressed="false"><span>HẾT HÀNG</span><strong id="empty-count">0</strong></button>
       </div>
-      <p id="status" class="status" role="status" aria-live="polite"></p>
-      <div class="table-wrap"><table><thead><tr><th scope="col">STT</th><th scope="col">Mã hàng</th><th scope="col">Tên hàng</th><th scope="col">Tồn kho</th><th scope="col">Cập nhật lúc</th></tr></thead><tbody id="rows"></tbody></table></div>
-      <p id="empty" class="empty" hidden>Không tìm thấy mặt hàng phù hợp.</p>
+      <div class="report-toolbar">
+        <div class="report-details"><p id="updated">Cập nhật lần cuối: Chưa có</p><p id="report-scope">Khoảng báo cáo: Chưa có</p></div>
+        <div class="report-actions"><span class="source-label">Nguồn VAOnline</span><button id="refresh" class="button primary">Làm mới tồn kho</button></div>
+      </div>
+      <div class="period-panel" aria-label="Khoảng báo cáo đã đồng bộ">
+        <label>Từ ngày<div class="date-field"><input id="from-date" placeholder="Chưa có thông tin" readonly aria-describedby="period-help"><span aria-hidden="true">▦</span></div></label>
+        <label>Đến ngày<div class="date-field"><input id="to-date" placeholder="Chưa có thông tin" readonly aria-describedby="period-help"><span aria-hidden="true">▦</span></div></label>
+        <span id="period-label" class="period-label">Kỳ đã đồng bộ</span>
+        <button id="more-filters" class="button secondary">Bộ lọc thêm…</button>
+        <span id="period-help" class="sr-only">Khoảng thời gian của báo cáo đang hiển thị. Thay đổi kỳ báo cáo tại nguồn đồng bộ.</span>
+      </div>
+      <div class="search-toolbar">
+        <label class="search-field"><span aria-hidden="true">⌕</span><input id="query" type="search" placeholder="Tìm mã hàng hoặc tên hàng…" aria-label="Tìm mã hàng hoặc tên hàng" autocomplete="off"></label>
+        <button id="export" class="button secondary">Xuất Excel</button>
+      </div>
+      <div id="filter-summary" class="filter-summary" hidden><span></span><button id="clear-filters">Xóa bộ lọc</button></div>
+      <div class="table-panel">
+        <div class="table-wrap" tabindex="0" aria-label="Bảng tồn kho, cuộn để xem thêm">
+          <table>
+            <colgroup><col class="col-number"><col class="col-code"><col><col class="col-stock"></colgroup>
+            <thead><tr>
+              <th scope="col">STT</th>
+              <th scope="col" aria-sort="ascending"><button data-sort="ma_hang">Mã hàng <span class="sort-mark" aria-hidden="true">↑</span></button></th>
+              <th scope="col"><button data-sort="ten_hang">Tên hàng <span class="sort-mark" aria-hidden="true"></span></button></th>
+              <th scope="col"><button data-sort="ton_kho">Tồn kho <span class="sort-mark" aria-hidden="true"></span></button></th>
+            </tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <p id="empty" class="empty" hidden>Không tìm thấy mặt hàng phù hợp.</p>
+        </div>
+      </div>
     </section>
+    <section id="settings" class="settings-panel" aria-label="Cài đặt hiển thị" hidden>
+      <h2>Cài đặt hiển thị</h2>
+      <label for="refresh-interval">Tự làm mới dữ liệu</label>
+      <p>Tải lại bản tồn kho mới nhất khi bạn đang mở trang.</p>
+      <select id="refresh-interval"><option value="0">Không</option><option value="60">Mỗi 1 phút</option><option value="300">Mỗi 5 phút</option><option value="900">Mỗi 15 phút</option></select>
+      <label for="theme">Giao diện</label>
+      <select id="theme"><option value="light">Sáng</option><option value="dark">Tối</option></select>
+      <p class="settings-note">Cài đặt được nhớ trên trình duyệt này. Thời điểm lấy số liệu từ VAOnline hiển thị ở mục “Cập nhật lần cuối”.</p>
+    </section>
+    <footer class="status-bar"><p id="status" role="status" aria-live="polite">Đang tải dữ liệu tồn kho…</p><span id="row-count"></span></footer>
   </main>
+  <dialog id="filter-dialog" aria-labelledby="filter-title">
+    <form id="filter-form">
+      <div class="dialog-heading"><h2 id="filter-title">Bộ lọc tồn kho</h2><button type="button" id="close-filters" aria-label="Đóng bộ lọc">×</button></div>
+      <label for="stock-filter">Trạng thái tồn kho</label>
+      <select id="stock-filter"><option value="all">Tất cả mặt hàng</option><option value="available">Có tồn kho</option><option value="empty">Hết hàng (tồn bằng hoặc dưới 0)</option><option value="negative">Tồn kho âm</option></select>
+      <div class="dialog-actions"><button type="button" id="reset-filters" class="button secondary">Đặt lại</button><button type="submit" class="button primary">Áp dụng</button></div>
+    </form>
+  </dialog>
 </body>
 </html>

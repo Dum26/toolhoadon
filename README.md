@@ -2,6 +2,8 @@
 
 Trang web tra cứu mã hàng, tên hàng và tồn kho bằng dữ liệu đã xuất từ ứng dụng VA STOCK Windows. Ai có link đều xem được tồn kho, không cần đăng nhập. Dữ liệu tồn kho không được lưu trong repository.
 
+Giao diện theo VA STOCK Windows: thanh bên, ba ô tổng quan, khoảng báo cáo và bảng tồn kho. Hỗ trợ tìm không dấu, lọc có tồn/hết hàng/tồn âm, bấm tiêu đề cột để sắp xếp, xuất Excel theo bộ lọc và cài đặt sáng/tối, tự làm mới. Ngày báo cáo hiển thị kỳ đã đồng bộ; việc thay kỳ và lấy báo cáo mới được thực hiện tại nguồn đồng bộ.
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FDum26%2Ftoolhoadon)
 
 ## Triển khai
