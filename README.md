@@ -22,8 +22,10 @@ Nội dung để dán vào Secret File nằm ở `D:\ToolVacom\va_stock\data\ren
 
 ## Cập nhật tồn kho
 
+Để tự lấy dữ liệu và cập nhật web ngay cả khi máy Windows tắt, xem [hướng dẫn đồng bộ cloud](cloud_sync/README.md). Lịch chạy mặc định chưa bật, cần cấu hình GitHub Secrets trước.
+
 Cập nhật tồn kho trong VA STOCK Windows, chạy lại lệnh xuất, rồi thay nội dung Secret File `inventory.json` trong Render và lưu. Render triển khai lại với bản tồn kho mới; mọi người bấm **Làm mới dữ liệu** trên trang web.
 
-Bản web không tự đăng nhập VAOnline hoặc tự đồng bộ từ máy Windows. Bản xuất được lưu ở cấu hình Secret Files của Render nên vẫn có sau khi dịch vụ khởi động lại. Gói Free có thể cần khoảng một phút để mở lại sau 15 phút không có lượt truy cập.
+Bản web hiển thị bản tồn kho gần nhất được gửi lên; việc tự lấy VAOnline do workflow cloud đảm nhiệm khi được cấu hình. Bản xuất được lưu ở cấu hình Secret Files của Render nên vẫn có sau khi dịch vụ khởi động lại. Gói Free có thể cần khoảng một phút để mở lại sau 15 phút không có lượt truy cập.
 
 Tài liệu Render: https://render.com/docs/deploy-fastapi và https://render.com/docs/configure-environment-variables#secret-files
