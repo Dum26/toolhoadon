@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tra cứu tồn kho</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div><p class="eyebrow">VAOnline · Báo cáo nhập xuất tồn</p><h1>TRA CỨU TỒN KHO</h1><p class="intro">Tìm nhanh mã hàng, tên hàng và số lượng tồn cuối kỳ.</p></div>
+      <button id="refresh" type="button">Làm mới dữ liệu</button>
+    </header>
+    <section class="panel" aria-label="Danh sách tồn kho">
+      <div class="toolbar">
+        <label class="search"><span>Tìm mặt hàng</span><input id="query" type="search" placeholder="Nhập mã hàng hoặc tên hàng..." autocomplete="off"></label>
+        <div class="stats"><span id="count">Tổng số mặt hàng: 0</span><span id="updated">Cập nhật lần cuối: Chưa có</span></div>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <div class="table-wrap"><table><thead><tr><th scope="col">STT</th><th scope="col">Mã hàng</th><th scope="col">Tên hàng</th><th scope="col">Tồn kho</th><th scope="col">Cập nhật lúc</th></tr></thead><tbody id="rows"></tbody></table></div>
+      <p id="empty" class="empty" hidden>Không tìm thấy mặt hàng phù hợp.</p>
+    </section>
+  </main>
+</body>
+</html>
