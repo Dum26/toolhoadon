@@ -2,9 +2,11 @@
 
 Trang web tra cứu mã hàng, tên hàng và tồn kho bằng dữ liệu đã xuất từ ứng dụng VA STOCK Windows. Mọi trang và API tồn kho đều yêu cầu đăng nhập. Dữ liệu và mật khẩu không được lưu trong repository.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FDum26%2Ftoolhoadon)
+
 ## Triển khai
 
-1. Mở https://dashboard.render.com/select-repo?type=blueprint và chọn repository này.
+1. Bấm **Deploy to Render** ở trên và đăng nhập Render.
 2. Nhập mật khẩu chia sẻ vào biến `VA_STOCK_PASSWORD`; tên đăng nhập là `vastock`. Blueprint dùng gói Free.
 3. Sau khi tạo dịch vụ, mở **Environment → Secret Files → Add Secret File**. Đặt tên file là `inventory.json`, dán nội dung bản xuất tồn kho, rồi lưu và triển khai.
 4. Mở địa chỉ `https://<tên-dịch-vụ>.onrender.com` Render cấp và đăng nhập. Chia sẻ địa chỉ cùng tài khoản cho người cần xem.
