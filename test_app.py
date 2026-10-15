@@ -1,7 +1,5 @@
-import base64
 import json
 import os
-import secrets
 import socket
 import subprocess
 import sys
@@ -19,8 +17,9 @@ class ViewerTests(unittest.TestCase):
         cls.directory = tempfile.TemporaryDirectory()
         cls.snapshot = Path(cls.directory.name) / "inventory.json"
         cls.snapshot.write_text(json.dumps({"data": [{"ma_hang": "TEST", "ten_hang": "Hàng thử", "ton_kho": 2.5, "updated_at": "2026-10-15T00:00:00Z"}]}), encoding="utf-8")
-        password = secrets.token_urlsafe(18)
-        cls.auth = "Basic " + base64.b64encode(f"vastock:{password}".encode()).decode()
+        env = {**os.environ, "INVENTORY_PATH": str(cls.snapshot)}
+        env.pop("VA_STOCK_USERNAME", None)
+        env.pop("VA_STOCK_PASSWORD", None)
         with socket.socket() as listener:
             listener.bind(("127.0.0.1", 0))
             port = listener.getsockname()[1]
@@ -28,7 +27,7 @@ class ViewerTests(unittest.TestCase):
         cls.process = subprocess.Popen(
             [sys.executable, "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(port)],
             cwd=Path(__file__).resolve().parent,
-            env={**os.environ, "VA_STOCK_USERNAME": "vastock", "VA_STOCK_PASSWORD": password, "INVENTORY_PATH": str(cls.snapshot)},
+            env=env,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
         cls.addClassCleanup(cls.directory.cleanup)
@@ -56,19 +55,20 @@ class ViewerTests(unittest.TestCase):
         except HTTPError as response:
             return response
 
-    def test_inventory_and_assets_require_password(self):
+    def test_inventory_and_assets_open_without_login(self):
         for path in ("/", "/api/inventory", "/static/app.js", "/static/style.css"):
             with self.subTest(path=path), self.request(path) as response:
-                self.assertEqual(response.status, 401)
-                self.assertTrue(response.headers["WWW-Authenticate"].startswith("Basic "))
+                self.assertEqual(response.status, 200)
+                self.assertIsNone(response.headers.get("WWW-Authenticate"))
 
-    def test_bad_credentials(self):
+    def test_cached_credentials_do_not_block_public_access(self):
         for auth in ("Basic aW52YWxpZDppbnZhbGlk", "Basic invalid", "Bearer test"):
             with self.subTest(auth=auth), self.request("/api/inventory", auth) as response:
-                self.assertEqual(response.status, 401)
+                self.assertEqual(response.status, 200)
+                self.assertIsNone(response.headers.get("WWW-Authenticate"))
 
-    def test_authorized_inventory(self):
-        with self.request("/api/inventory", self.auth) as response:
+    def test_public_inventory(self):
+        with self.request("/api/inventory") as response:
             body = json.load(response)
             self.assertEqual(body["count"], 1)
             self.assertEqual(body["data"][0]["ton_kho"], 2.5)
@@ -76,14 +76,14 @@ class ViewerTests(unittest.TestCase):
 
     def test_home_and_assets(self):
         for path in ("/", "/static/app.js", "/static/style.css"):
-            with self.subTest(path=path), self.request(path, self.auth) as response:
+            with self.subTest(path=path), self.request(path) as response:
                 self.assertEqual(response.status, 200)
 
     def test_sync_and_internal_files_not_exposed(self):
-        with self.request("/api/sync", self.auth, "POST") as response:
+        with self.request("/api/sync", method="POST") as response:
             self.assertEqual(response.status, 403)
         for path in ("/docs", "/openapi.json", "/inventory.json", "/.env", "/static/../app.py"):
-            with self.subTest(path=path), self.request(path, self.auth) as response:
+            with self.subTest(path=path), self.request(path) as response:
                 self.assertEqual(response.status, 404)
 
     def test_unavailable_snapshot_is_service_error(self):
@@ -91,22 +91,13 @@ class ViewerTests(unittest.TestCase):
         try:
             for invalid in ("{", '{"data": null}'):
                 self.snapshot.write_text(invalid, encoding="utf-8")
-                with self.request("/api/inventory", self.auth) as response:
+                with self.request("/api/inventory") as response:
                     self.assertEqual(response.status, 503)
             self.snapshot.unlink()
-            with self.request("/api/inventory", self.auth) as response:
+            with self.request("/api/inventory") as response:
                 self.assertEqual(response.status, 503)
         finally:
             self.snapshot.write_text(original, encoding="utf-8")
-
-    def test_missing_password_prevents_startup(self):
-        env = dict(os.environ)
-        env.pop("VA_STOCK_PASSWORD", None)
-        result = subprocess.run([sys.executable, "-c", "import app"], cwd=Path(__file__).resolve().parent,
-                                env=env, capture_output=True, text=True, timeout=10)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("Set VA_STOCK_PASSWORD", result.stderr)
-
 
 if __name__ == "__main__":
     unittest.main()

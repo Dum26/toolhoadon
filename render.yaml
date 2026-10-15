@@ -10,9 +10,5 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.7
-      - key: VA_STOCK_USERNAME
-        value: vastock
-      - key: VA_STOCK_PASSWORD
-        sync: false
       - key: INVENTORY_PATH
         value: /etc/secrets/inventory.json
